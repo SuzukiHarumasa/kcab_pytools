@@ -13,7 +13,7 @@ Instabase関連で使うPython系のツールレポ。
 # 使い方
 まずはこのリポをローカルなどにクローン。
 
-	git clone git@github.com:rebaseinc/ib-pytools.git
+	git clone git@github.com:rebaseinc/kcab_pytools.git
 
 仮想環境などで、
 
