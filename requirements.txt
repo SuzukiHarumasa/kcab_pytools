@@ -1,0 +1,15 @@
+requests
+redash_dynamic_query
+pandas
+numpy
+google-api-python-client
+boto3
+geopandas
+geopy
+folium
+gspread
+matplotlib
+seaborn
+scipy
+jupyter
+retry
