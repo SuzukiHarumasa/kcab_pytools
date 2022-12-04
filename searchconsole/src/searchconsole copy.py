@@ -6,8 +6,8 @@ from typing import Callable
 import pandas as pd
 import numpy as np
 
-from googleapiclient.discovery import build
-from oauth2client.service_account import ServiceAccountCredentials
+from apiclient.discovery import build
+from google.oauth2 import service_account
 
 
 class IbSearchConsole:
@@ -45,13 +45,17 @@ class IbSearchConsole:
     metrics_agg_dict: dict = {'clicks': 'sum',
                               'impressions': 'sum', 'ctr': 'mean', 'position': 'mean'}
 
-    def __init__(self, credentials,url, ask_to_proceed=False):
-        
-        self.scope = ["https://www.googleapis.com/auth/webmasters","https://www.googleapis.com/auth/webmasters.readonly"]
-        self.credentials = ServiceAccountCredentials.from_json_keyfile_name(credentials,self.scope)
+    def __init__(self, credentials, ask_to_proceed=False):
+        self.credentials = service_account.Credentials.from_service_account_file(
+            credentials)
+        self.scoped_credentials = self.credentials.with_scopes(
+            ['https://www.googleapis.com/auth/webmasters.readonly'])
         self.refresh_token()
-
-        self.property_uri = url
+        try:
+            self.get_site_list()
+        except:
+            pass
+        self.property_uri = 'https://www.maneo.jp/saas/'
         self.default_query_params = {
             'startDate': (datetime.datetime.today() - datetime.timedelta(days=30)).strftime('%Y-%m-%d'),
             'endDate': (datetime.datetime.today() - datetime.timedelta(days=1)).strftime('%Y-%m-%d'),
@@ -60,10 +64,11 @@ class IbSearchConsole:
         }
         self.ask_to_proceed = ask_to_proceed
         print("Default query params set. startDate and endDate are set to the past 30 days by default. Overwrite as needed.")
-        
+
     def refresh_token(self):
-        self.api = build('webmasters', 'v3', credentials=self.credentials)
-        
+        self.api = build('searchconsole', 'v1',
+                         credentials=self.scoped_credentials)
+
     @property
     def list_dimensions(self):
         "Returns list of legal values for dimensions."
@@ -84,6 +89,13 @@ class IbSearchConsole:
         "Returns list of metrics the API returns."
         return ['clicks', 'ctr', 'impressions', 'position']
 
+    def get_site_list(self):
+        self.site_list = self.api.sites().list().execute()
+        self.verified_sites_urls = [s['siteUrl'] for s in self.site_list['siteEntry']
+                                    if s['permissionLevel'] != 'siteUnverifiedUser'
+                                    and s['siteUrl'][:4] == 'http']
+        print('Verified site urls:\n\t- ' +
+              '\n\t- '.join(self.verified_sites_urls))
 
     def get_sitemaps(self, site_url):
         try:
@@ -94,7 +106,8 @@ class IbSearchConsole:
                 print('\t' + '\n '.join(sitemap_urls))
         except Exception as e:
             print(e)
-
+            
+    #めちゃくちゃ重要
     def get(self, dimensions=['query'], filters=[], params={}, get_all=False):
         "Gets top 10 queries for the date range, sorted by click count, descending."
 
@@ -128,7 +141,8 @@ class IbSearchConsole:
                         filters=filters,
                         params=params,
                         get_all=get_all)
-
+        
+    # response = webmasters.searchanalytics().query(siteUrl=site, body=body).execute()
     def execute_request(self, request={}, property_uri=None):
         """Executes a searchAnalytics.query request.
         Args:
@@ -231,7 +245,7 @@ class IbSearchConsole:
             self.req.update(param_dic)
         return self.req
 
-    def add_filter(self,dimension=None, operator=None, expression=None,filters=[], ):
+    def add_filter(self, filters=[], dimension=None, operator=None, expression=None):
         """Creates a filter dictionary and returns a list of filters.
         If the method is supplied with a 'filters' object, the method will add to that filters object and
         return the resulting list.

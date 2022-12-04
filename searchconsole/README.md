@@ -10,18 +10,18 @@
 
 ```
 import sys
-sys.path.append('../../lib')
-from ib_pytools.searchconsole import IbSearchConsole
+import pandas as pd
+sys.path.append('/Users/suzukiharumasa/kcab/')
 
-credentials = '../../lib/ib_pytools/searchconsole/credentials/instabase-search-console-7812cfb87607.json'
-sc = IbSearchConsole(credentials)
-top_queries = sc.get_top_queries(params={'rowLimit':25000})
-top_pages = sc.get_top_pages(params={'rowLimit':25000})
+from kcab_pytools.searchconsole import IbSearchConsole
+credentials = '../../kcab_pytools/client_secret_dota.json'
+site = 'https://www.maneo.jp/media/' 
+sc = IbSearchConsole(credentials, site)
 ```
 
 フィルターを使った例
 ```
-filters = sc.add_filter('page', 'equals', 'https://www.instabase.jp/tokyo-kaigishitsu')
+filters = sc.add_filter('page', 'equals', 'https://www.maneo.jp/media/cr-metaverse-crypto/')
 top_queries = sc.get_top_queries(dimensions=['query'],
                         filters=filters,
                         params={'rowLimit': 100})
@@ -37,6 +37,14 @@ top_pages = sc.get_top_pages(dimensions=['query', 'page'],
                         params={'rowLimit': 100})
 ```
 
+日付を指定する場合
+```
+top_pages = sc.get_top_pages(dimensions = ['date', 'page','query'],params={'startDate' : '2021-04-01', 'endDate' : '2021-08-31'},get_all=True)
+
+top_pages['key_0'] = pd.to_datetime(top_pages['key_0'])
+top_pages = top_pages.sort_values('key_0').reset_index(drop = True)
+
+```
 ## TODO
 [Projectsを使って管理してみてる。](https://github.com/rebaseinc/ib-analysis/projects/1)
 

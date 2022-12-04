@@ -1,8 +1,12 @@
+import sys
+
+sys.path.append('/Users/suzukiharumasa/kcab/kcab_pytools')
+
 import pandas as pd
 from gsheets import GSheets
 
 # インスタンスを生成
-creds = '../ibgoogleanalytics/credentials/tidal-plasma-270110-aa109d2737fe.json'
+creds = '/Users/suzukiharumasa/kcab/kcab_pytools/py-tools-341712-6978522c6ff8.json'
 gs = GSheets(creds)
 
 # 例としてdfを作成
@@ -29,6 +33,9 @@ sheets
 sheet = sheets.worksheets()[0]
 content = sheet.get_values()
 content
+
+#シートの中身をデータフレーム化
+df = pd.DataFrame(content, columns = content[0]).drop(0)
 
 # シートから重複する行を削除（全ての列の値が重複しているかをチェック）
 gs.drop_duplicates(sheet)

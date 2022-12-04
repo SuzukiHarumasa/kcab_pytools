@@ -23,5 +23,3 @@ Instabase関連で使うPython系のツールレポ。
 Pythonスクリプトの中で `import` して利用。
 
 ※Google Ads API のみ、ただのスクリプトなので、 `ibgoogleads.py` を参考に直接使うと良い。
-
-
